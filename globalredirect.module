@@ -28,8 +28,6 @@ function globalredirect_init() {
 
     //Lets do a check to compare the current url to the site's frontpage.
     //  If matches, redirect to the frontpage (eg, http://www.mysite.com/)
-    #$frontpage = variable_get('site_frontpage', '/');
-    #if($_REQUEST['q'] == $frontpage) {
     if(drupal_is_front_page()) {
       header("HTTP/1.1 301 Moved Permanently");
       drupal_goto('', $query_string);
