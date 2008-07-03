@@ -1,6 +1,9 @@
 <?php
-//$Id$
-
+// $Id$
+/**
+ * @file
+ * The Global Redirect module redirects for all paths which have aliases but are not using the aliases which reduces the risk of duplicate content
+ */
 /**
  * Implementation of hook_help().
  */
@@ -16,8 +19,29 @@ function globalredirect_help($section) {
  * Implementation of hook_init().
  */
 function globalredirect_init() {
-  if(isset($_REQUEST['q']) && function_exists('drupal_get_path_alias') && !isset($_REQUEST['destination'])) {
-    
+  //We need to do a test to make sure we only clean up URL's for the main request. This stops modules such as
+  //  the Ad Module which had its own script in its folder doing a bootstrap which invoked hook_init and caused some banners to get "cleaned up"
+  //  See issue: http://drupal.org/node/205810
+  if ($_SERVER['SCRIPT_NAME'] != '/index.php') return false;
+
+  /**
+   * We need to make sure this hook only fires in certain conditions:
+   *   1) If the 'drupal_get_path' function exists. Sometimes hook_init gets called twice, the first call hasn't included path.inc.
+   *   2) If the callback associated with the request is accessible - this stops the user learning hidden/private url aliases.
+   *   3) If there is a request. There is no point checking the REAL frontpage for an alias.
+   *   4) If the $_POST is empty. The problem which arises here is if a form posts to an source path rather than the alias. GlobalRedirect sometimes interrupts the post and redirects to the alias instead.
+   */
+  if (function_exists('drupal_get_path_alias') &&
+      _menu_item_is_accessible(menu_get_active_item()) &&
+      isset($_REQUEST['q']) &&
+      empty($_POST)) {
+
+    //Store the destination from the $REQUESTT as it breaks things if we leave it in - restore it at the end...
+    if (isset($_REQUEST['destination'])) {
+      $destination = $_REQUEST['destination'];
+      unset($_REQUEST['destination']);
+    }
+
     // Get the Query String (minus the 'q'). If none set, set to NULL
     $query_string = drupal_query_string_encode($_GET, array('q'));
     if (empty($query_string)) {
@@ -34,7 +58,7 @@ function globalredirect_init() {
 
     // Check the path (eg, node/123) for an request.
     $alias = drupal_get_path_alias($request);
-    
+
     // If alias is different to the request, redirect...
     if ($alias != $request) {
       drupal_goto($alias, $query_string, NULL, 301);
@@ -49,5 +73,8 @@ function globalredirect_init() {
     if ((bool)variable_get('clean_url', 0) && strpos(request_uri(), '?q=')) {
       drupal_goto($request, $query_string, NULL, 301);
     }
+
+    //Restore the destination from earlier so its available in other places.
+    if (isset($destination)) $_REQUEST['destination'] = $destination;
   }
 }
