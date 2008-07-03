@@ -36,7 +36,7 @@ function globalredirect_init() {
       isset($_REQUEST['q']) &&
       empty($_POST)) {
 
-    //Store the destination from the $REQUESTT as it breaks things if we leave it in - restore it at the end...
+    //Store the destination from the $_REQUEST as it breaks things if we leave it in - restore it at the end...
     if (isset($_REQUEST['destination'])) {
       $destination = $_REQUEST['destination'];
       unset($_REQUEST['destination']);
