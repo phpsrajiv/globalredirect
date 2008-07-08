@@ -31,6 +31,7 @@ function globalredirect_init() {
    *   3) If there is a request. There is no point checking the REAL frontpage for an alias.
    *   4) If the $_POST is empty. The problem which arises here is if a form posts to an source path rather than the alias. GlobalRedirect sometimes interrupts the post and redirects to the alias instead.
    */
+
   if (function_exists('drupal_get_path_alias') &&
       _menu_item_is_accessible(menu_get_active_item()) &&
       isset($_REQUEST['q']) &&
