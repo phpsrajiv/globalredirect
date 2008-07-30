@@ -19,10 +19,12 @@ function globalredirect_help($section) {
  * Implementation of hook_init().
  */
 function globalredirect_init() {
-  //We need to do a test to make sure we only clean up URL's for the main request. This stops modules such as
-  //  the Ad Module which had its own script in its folder doing a bootstrap which invoked hook_init and caused some banners to get "cleaned up"
-  //  See issue: http://drupal.org/node/205810
-  if ($_SERVER['SCRIPT_NAME'] != '/index.php') return false;
+  /**
+   * We need to do a test to make sure we only clean up URL's for the main request. This stops modules such as
+   * the Ad Module which had its own script in its folder doing a bootstrap which invoked hook_init and caused some banners to get "cleaned up"
+   * See issues: http://drupal.org/node/205810 and http://drupal.org/node/278615
+   */
+  if ($_SERVER['SCRIPT_NAME'] != $GLOBALS['base_path'] .'index.php') return FALSE;
 
   /**
    * We need to make sure this hook only fires in certain conditions:
@@ -33,6 +35,7 @@ function globalredirect_init() {
    */
 
   if (function_exists('drupal_get_path_alias') &&
+      function_exists('_menu_item_is_accessible') &&
       _menu_item_is_accessible(menu_get_active_item()) &&
       isset($_REQUEST['q']) &&
       empty($_POST)) {
@@ -43,6 +46,9 @@ function globalredirect_init() {
       unset($_REQUEST['destination']);
     }
 
+    // Use drupal_get_normal_path() to allow custom_url_reqwrite to effect $q
+    $q = drupal_get_normal_path($_REQUEST['q']);
+
     // Get the Query String (minus the 'q'). If none set, set to NULL
     $query_string = drupal_query_string_encode($_GET, array('q'));
     if (empty($query_string)) {
@@ -50,23 +56,23 @@ function globalredirect_init() {
     }
 
     // If current path is also the frontpage, redirect to http://www.example.com.
-    if (!empty($_REQUEST['q']) && drupal_is_front_page()) {
+    if (!empty($q) && drupal_is_front_page()) {
       drupal_goto('', $query_string, NULL, 301);
     }
 
     // Trim any trailing slash off the end (eg, 'node/1/' to 'node/1')
-    $request = trim($_REQUEST['q'], '/');
+    $request = trim($q, '/');
 
     // Check the path (eg, node/123) for an request.
     $alias = drupal_get_path_alias($request);
 
     // If alias is different to the request, redirect...
-    if ($alias != $request) {
+    if ($alias != $_REQUEST['q']) {
       drupal_goto($alias, $query_string, NULL, 301);
     }
 
     // If the trimmed request differs to the request then redirect (basically, de-slash the source path)
-    if ($request != $_REQUEST['q']) {
+    if ($request != $q) {
       drupal_goto($request, $query_string, NULL, 301);
     }
 

@@ -8,8 +8,8 @@
 
 
 /**
- *  Implementation of hook_install.
- *  Configures the site - currently only changing the weight of the module to be the last to run.
+ * Implementation of hook_install().
+ * Configures the site - currently only changing the weight of the module to be the last to run.
  */
 function globalredirect_install() {
   db_query("UPDATE {system} SET weight = 1500 WHERE name = 'globalredirect'");
