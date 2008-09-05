@@ -66,7 +66,8 @@ function globalredirect_init() {
     }
 
     // Trim any trailing slash off the end (eg, 'node/1/' to 'node/1')
-    $request = trim($q, '/');
+    $request = (bool)variable_get('globalredirect_deslash', 1) ? trim($q, '/') : $q;
+
 
     // Check the path (eg, node/123) for an request.
     $alias = drupal_get_path_alias($request);
@@ -82,7 +83,7 @@ function globalredirect_init() {
     }
 
     //If no alias was returned, the final check is to direct non-clean to clean - if clean is enabled.
-    if ((bool)variable_get('clean_url', 0) && strpos(request_uri(), '?q=')) {
+    if ((bool)variable_get('globalredirect_nonclean2clean', 1) && (bool)variable_get('clean_url', 0) && strpos(request_uri(), '?q=')) {
       drupal_goto($request, $query_string, NULL, 301);
     }
 
@@ -90,3 +91,4 @@ function globalredirect_init() {
     if (isset($destination)) $_REQUEST['destination'] = $destination;
   }
 }
+
