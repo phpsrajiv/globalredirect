@@ -1,5 +1,13 @@
 <?php
+// $Id$
 
+/**
+ * @file This is the GlobalRedirect Admin module which provides an interface to global redirect to change some of the default settings
+ */
+
+/**
+ *  Implementation of hook_menu
+ */
 function globalredirect_admin_menu($may_cache) {
   $items = array();
 
@@ -17,6 +25,9 @@ function globalredirect_admin_menu($may_cache) {
   }
 }
 
+/**
+ *  Function to generate the form setting array
+ */
 function globalredirect_admin_settings() {
   $form = array();
 
