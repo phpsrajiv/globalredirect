@@ -77,9 +77,10 @@ function globalredirect_init() {
     }
 
     // Trim any trailing slash off the end (eg, 'node/1/' to 'node/1')
-    $request = (bool)variable_get('globalredirect_deslash', GLOBALREDIRECT_DESLASH_ENABLED) ? trim($q, '/') : $q;
+    $redirect_slash = variable_get('globalredirect_deslash', GLOBALREDIRECT_DESLASH_ENABLED) == GLOBALREDIRECT_DESLASH_ENABLED;
+    $request = $redirect_slash ? trim($_GET['q'], '/') : $_GET['q'];
 
-    //Optional stripping of "/0". Defaultly disabled
+    // Optional stripping of "/0". Defaultly disabled
     switch (variable_get('globalredirect_trailingzero', GLOBALREDIRECT_FEATURE_DISABLED)) {
       case GLOBALREDIRECT_TRAILINGZERO_TAXTERM :
         // If 'taxonomy/term/*' only. If not, break out.
@@ -99,17 +100,17 @@ function globalredirect_init() {
     $alias = drupal_get_path_alias($request);
 
     // If alias is different to the request, redirect...
-    if ($alias != $_REQUEST['q']) {
+    if ($alias != $request) {
       drupal_goto($alias, $query_string, NULL, 301);
     }
 
     // If the trimmed request differs to the request then redirect (basically, de-slash the source path).
-    if ($request != $q) {
+    if ($redirect_slash && ($request != $q)) {
       drupal_goto($request, $query_string, NULL, 301);
     }
 
     // If no alias was returned, the final check is to direct non-clean to clean - if clean is enabled.
-    if ((bool)variable_get('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) && (bool)variable_get('clean_url', 0) && strpos(request_uri(), '?q=')) {
+    if (variable_get('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) == GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED && (bool)variable_get('clean_url', 0) && strpos(request_uri(), '?q=')) {
       drupal_goto($request, $query_string, NULL, 301);
     }
 
