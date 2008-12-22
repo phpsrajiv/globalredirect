@@ -61,7 +61,7 @@ function globalredirect_settings() {
   $form['globalredirect_case_sensitive_urls'] = array(
     '#type' => 'radios',
     '#title' => t('Case Sensitive URL Checking'),
-    '#description' => t('If enabled, the module will compae the current URL to the alias stored in the system. If there are any differences in case then the user will be redirected to the correct URL.'),
+    '#description' => t('If enabled, the module will compare the current URL to the alias stored in the system. If there are any differences in case then the user will be redirected to the correct URL.'),
     '#options' => array(
       GLOBALREDIRECT_FEATURE_DISABLED => t('Disabled'),
       GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED => t('Enabled'),
