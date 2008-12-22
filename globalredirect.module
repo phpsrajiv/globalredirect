@@ -15,6 +15,8 @@ define('GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED', 1);
 
 define('GLOBALREDIRECT_DESLASH_ENABLED', 1);
 
+define('GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED', 1);
+
 /**
  * Implementation of hook_help().
  */
@@ -78,7 +80,7 @@ function globalredirect_init() {
 
     // Trim any trailing slash off the end (eg, 'node/1/' to 'node/1')
     $redirect_slash = variable_get('globalredirect_deslash', GLOBALREDIRECT_DESLASH_ENABLED) == GLOBALREDIRECT_DESLASH_ENABLED;
-    $request = $redirect_slash ? trim($_GET['q'], '/') : $_GET['q'];
+    $request = $redirect_slash ? trim($_REQUEST['q'], '/') : $_REQUEST['q'];
 
     // Optional stripping of "/0". Defaultly disabled
     switch (variable_get('globalredirect_trailingzero', GLOBALREDIRECT_FEATURE_DISABLED)) {
@@ -99,13 +101,23 @@ function globalredirect_init() {
     // Check the path (eg, node/123) for an request.
     $alias = drupal_get_path_alias($request);
 
+    // Alias case sensitivity check. If there is an alias from the previous lookup, do a query to test for case.
+    if ($alias && variable_get('globalredirect_case_sensitive_urls', GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED) == GLOBALREDIRECT_CASE_SENSITIVE_URLS_ENABLED) {
+      $alias_sensitive = db_result(db_query("SELECT dst FROM {url_alias} WHERE dst = '%s'", $alias));
+
+      if ($alias_sensitive && $alias != $alias_sensitive) {
+        // There is a match and there is a difference in case.
+        $alias = $alias_sensitive;
+      }
+    }
+
     // If alias is different to the request, redirect...
-    if ($alias != $request) {
+    if ($alias != $_REQUEST['q']) {
       drupal_goto($alias, $query_string, NULL, 301);
     }
 
     // If the trimmed request differs to the request then redirect (basically, de-slash the source path).
-    if ($redirect_slash && ($request != $q)) {
+    if ($redirect_slash && ($request != $_REQUEST['q'])) {
       drupal_goto($request, $query_string, NULL, 301);
     }
 
