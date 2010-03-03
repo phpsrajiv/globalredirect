@@ -47,6 +47,11 @@ function globalredirect_init() {
    */
   if ($_SERVER['SCRIPT_NAME'] != $GLOBALS['base_path'] .'index.php') return FALSE;
 
+  // If this is a command line request (Drush, etc), skip processing.
+  if (globalredirect_is_cli()) {
+    return FALSE;
+  }
+
   /**
    * If the site is in offline mode there is little point doing any of this as
    * you might end up redirecting to a 503.
@@ -198,4 +203,11 @@ function globalredirect_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Drupal 6 backport of drupal_is_cli().
+ */
+function globalredirect_is_cli() {
+  return (!isset($_SERVER['SERVER_SOFTWARE']) && (PHP_SAPI == 'cli' || (is_numeric($_SERVER['argc']) && $_SERVER['argc'] > 0)));
 }
