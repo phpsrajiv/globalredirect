@@ -69,16 +69,13 @@ function globalredirect_init() {
    * We need to make sure this hook only fires in certain conditions:
    *   1) If the 'drupal_get_path' function exists. Sometimes hook_init gets
    *      called twice, the first call hasn't included path.inc.
-   *   2) If there is a request. There is no point checking the REAL front page
-   *      for an alias.
-   *   3) If the $_POST is empty. The problem which arises here is if a form
+   *   2) If the $_POST is empty. The problem which arises here is if a form
    *      posts to an source path rather than the alias. GlobalRedirect
    *      sometimes interrupts the post and redirects to the alias instead.
    */
 
   if (function_exists('drupal_get_path_alias') &&
       ($menu_check == GLOBALREDIRECT_FEATURE_DISABLED || ($menu_check == GLOBALREDIRECT_MENU_CHECK_ENABLED && function_exists('menu_get_item'))) &&
-      isset($_REQUEST['q']) &&
       empty($_POST)) {
 
     // If menu checking is enabled, do the check. Feature disabled by default.
@@ -127,6 +124,11 @@ function globalredirect_init() {
       // Redirect if the current request does not refer to the front page in the
       // configured fashion (with or without a prefix)
       if ($_REQUEST['q'] != $prefix) {
+        drupal_goto('', $query_string, NULL, 301);
+      }
+      elseif((variable_get('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) == GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) &&
+              ((bool)variable_get('clean_url', 0)) &&
+              (strpos(request_uri(), '?q=') || strpos(request_uri(), 'index.php'))) {
         drupal_goto('', $query_string, NULL, 301);
       }
       // If we've got to this point then we're on a front page with a VALID
