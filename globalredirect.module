@@ -53,6 +53,13 @@ function globalredirect_init() {
   }
 
   /**
+   * Check if the request is an attempted url mask
+   */
+  if (strpos(request_uri(), '://') !== FALSE) {
+    return FALSE;
+  }
+
+  /**
    * If the site is in offline mode there is little point doing any of this as
    * you might end up redirecting to a 503.
    */
