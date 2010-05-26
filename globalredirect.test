@@ -39,19 +39,33 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
   }
 
   protected function _globalredirect_batch_test() {
+    // If menu checking is enabled, set to TRUE - otherwise FALSE
+    $menu_check = variable_get('globalredirect_menu_check', GLOBALREDIRECT_FEATURE_DISABLED) == GLOBALREDIRECT_MENU_CHECK_ENABLED;
+
+    // If menu checking is enabled, set to TRUE - otherwise FALSE
+    $deslash_check = variable_get('globalredirect_deslash', GLOBALREDIRECT_DESLASH_ENABLED) == GLOBALREDIRECT_DESLASH_ENABLED;
+
+
+    // TODO - Refactor to just an array or test_path settings. Don't use the request as the key, its too limiting.
+
     // Array of request => "array of expected data" pairs.
+    // The array must have a return-code key (with a numeric HTTP code as a value (eg 301 or 200).
+    // The array may also have an expected-path key with a value representing the expected path. If this is ommitted, the request is passed through url().
     $test_paths = array(
       // "" is the frontpage. Should NOT redirect. Need to use <front> as keys cannot be blank --- Test for normal requests
-      '<front>'        => array('return-code' => 200),
+      '<front>' => array('return-code' => 200, 'expected-path' => ''),
 
       // "node" is the default frontpage. Should redirect to base path. --- Test for frontpage redirect
-      'node'           => array('return-code' => 301),
-      
+      'node' => array('return-code' => 301, 'expected-path' => ''),
+
       // "node/1" has been defined above as having an alias ("test-node"). Should 301 redirect to the alias. --- Test for source path request on aliased path
-      'node/1'         => array('return-code' => 301),
+      'node/1' => array('return-code' => 301),
 
       // "node/add/story" has an alias, however the redirect depends on the menu_check setting --- Test for access request to secured url
-      'node/add/story' => array('return-code' => variable_get('globalredirect_menu_check', GLOBALREDIRECT_FEATURE_DISABLED) ? 301 : 403),
+      'node/add/story' => array('return-code' => $menu_check ? 403 : 301),
+
+      // "user/[uid]/" has no alias, but the redirect depends on the $deslash_check setting --- Test for deslashing redirect
+      'user/'. $this->loggedInUser->uid .'/' => array('return-code' => $deslash_check ? 301 : 200, 'expected-path' => 'user/'. $this->loggedInUser->uid),
     );
 
     // Foreach of the above, lets check they redirect correctly
@@ -72,11 +86,27 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
       // Build a nice array of results
       $result = array(
-        '!expected_path' => ($expecting['return-code']) != 301 ? 'N/A' : url(($request == variable_get('site_frontpage', 'node') ? '<front>' : $request), array('absolute' => TRUE)),
         '!expected_status' => $expecting['return-code'],
         '!location' => isset($headers[0]['location']) ? $headers[0]['location'] : 'N/A',
         '!status' => $headers[0][':status'],
       );
+      // If the expected result is not a redirect, then there is no expected path in the location header.
+      if ($expecting['return-code'] != 301) {
+        $result['!expected_path'] = 'N/A';
+      }
+      else {
+        $url_options = array('absolute' => TRUE);
+        if (isset($expecting['expected-path'])) {
+          // If we have an expected path provided, use this and tell url() not to do an alias lookup
+          $path = $expecting['expected-path'];
+          $url_options['alias'] = TRUE;
+        }
+        else {
+          // Otherwise set the path to the request and let url() do an alias lookup.
+          $path = $request;
+        }
+        $result['!expected_path'] = url($path, $url_options);
+      }
 
 
       // First test - is the status as expected? (Note: The expected status must be cast to string for strpos to work)
@@ -115,6 +145,8 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
     );
   }
   function testGlobalRedirect() {
+    variable_set('globalredirect_deslash', GLOBALREDIRECT_DESLASH_ENABLED);
+    variable_set('globalredirect_menu_check', GLOBALREDIRECT_FEATURE_DISABLED);
     $this->_globalredirect_batch_test();
   }
 }
@@ -129,6 +161,7 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
     );
   }
   function testGlobalRedirect() {
+    variable_set('globalredirect_deslash', GLOBALREDIRECT_FEATURE_DISABLED);
     variable_set('globalredirect_menu_check', GLOBALREDIRECT_MENU_CHECK_ENABLED);
     $this->_globalredirect_batch_test();
   }
