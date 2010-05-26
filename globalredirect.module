@@ -135,7 +135,7 @@ function globalredirect_init() {
       if (isset($_REQUEST['q']) && $_REQUEST['q'] != $prefix) {
         drupal_goto('', $query_string, NULL, 301);
       }
-      elseif((variable_get('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) == GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) &&
+      elseif ((variable_get('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) == GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) &&
               ((bool)variable_get('clean_url', 0)) &&
               (strpos(request_uri(), '?q=') || strpos(request_uri(), 'index.php'))) {
         drupal_goto('', $query_string, NULL, 301);
