@@ -118,9 +118,11 @@ function globalredirect_init() {
       'external' => FALSE,
     );
     if (function_exists('language_url_rewrite')) {
-      // Note that language_url_rewrite() takes path (by reference) as the
-      // first argument but does not use it at all
-      $path = $_REQUEST['q'];
+      // Note 1 : the language_url_rewrite() takes path (by reference) as the
+      //          first argument but does not use it at all
+      // Note 2 : We use $_REQUEST['q'] here as we want the path in an untouched
+      //          form ($_GET['q] gets modified by core)
+      $path = isset($_REQUEST['q']) ? $_REQUEST['q'] : '';
       language_url_rewrite($path, $options);
     }
     $prefix = rtrim($options['prefix'], '/');
@@ -130,7 +132,7 @@ function globalredirect_init() {
     if (drupal_is_front_page()) {
       // Redirect if the current request does not refer to the front page in the
       // configured fashion (with or without a prefix)
-      if ($_REQUEST['q'] != $prefix) {
+      if (isset($_REQUEST['q']) && $_REQUEST['q'] != $prefix) {
         drupal_goto('', $query_string, NULL, 301);
       }
       elseif((variable_get('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) == GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) &&
