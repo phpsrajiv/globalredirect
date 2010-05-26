@@ -90,7 +90,6 @@ function globalredirect_init() {
       // Check the access on the current path, return FALSE if access not
       // allowed. This stops redirection for paths without access permission.
       $item = menu_get_item();
-      _menu_check_access($item, $item['map']);
       if (!$item['access']) return FALSE;
     }
 
