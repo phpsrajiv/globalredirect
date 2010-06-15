@@ -39,16 +39,8 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
   }
 
   protected function _globalredirect_batch_test() {
-    // If menu checking is enabled, set to TRUE - otherwise FALSE
-    $menu_check = variable_get('globalredirect_menu_check', GLOBALREDIRECT_FEATURE_DISABLED) === GLOBALREDIRECT_MENU_CHECK_ENABLED;
-
-    // If menu checking is enabled, set to TRUE - otherwise FALSE
-    $deslash_check = variable_get('globalredirect_deslash', GLOBALREDIRECT_DESLASH_ENABLED) === GLOBALREDIRECT_DESLASH_ENABLED;
-
-    // If menu checking is enabled, set to TRUE - otherwise FALSE
-    $clean_check = variable_get('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED) === GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED;
-
-    // TODO - Refactor to just an array or test_path settings. Don't use the request as the key, its too limiting.
+    // Get the settings
+    $settings = _globalredirect_get_settings();
 
     // Array of request => "array of expected data" pairs.
     // The array must have a return-code key (with a numeric HTTP code as a value (eg 301 or 200).
@@ -77,13 +69,13 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       // "node/add/story" has an alias, however the redirect depends on the menu_check setting --- Test for access request to secured url
       array(
         'request' => 'node/add/story',
-        'return-code' => $menu_check ? 403 : 301,
+        'return-code' => $settings['menu_check'] ? 403 : 301,
       ),
 
       // "user/[uid]/" has no alias, but the redirect depends on the $deslash_check setting --- Test for deslashing redirect
       array(
         'request' => 'user/'. $this->loggedInUser->uid .'/',
-        'return-code' => $deslash_check ? 301 : 200,
+        'return-code' => $settings['deslash'] ? 301 : 200,
         'expected-path' => 'user/'. $this->loggedInUser->uid,
       ),
 
@@ -99,8 +91,8 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       array(
         'request' => url('<front>', array('absolute' => TRUE)),
         'options' => array('query' => array('q' => 'node/add/page'), 'external' => TRUE),
-        'return-code' => $clean_check ? 301 : 200,
-        'expected-path' => $clean_check ? 'node/add/page' : '?q=node/add/page',
+        'return-code' => $settings['nonclean_to_clean'] ? 301 : 200,
+        'expected-path' => $settings['nonclean_to_clean'] ? 'node/add/page' : '?q=node/add/page',
       ),
     );
 
@@ -190,9 +182,11 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
     );
   }
   function testGlobalRedirect() {
-    variable_set('globalredirect_deslash', GLOBALREDIRECT_DESLASH_ENABLED);
-    variable_set('globalredirect_menu_check', GLOBALREDIRECT_FEATURE_DISABLED);
-    variable_set('globalredirect_nonclean2clean', GLOBALREDIRECT_NONCLEAN2CLEAN_ENABLED);
+    variable_set('globalredirect_settings', array(
+      'deslash' => 1,
+      'menu_check' => 0,
+      'nonclean_to_clean' => 1,
+    ));
     $this->_globalredirect_batch_test();
   }
 }
@@ -207,9 +201,12 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
     );
   }
   function testGlobalRedirect() {
-    variable_set('globalredirect_deslash', GLOBALREDIRECT_FEATURE_DISABLED);
-    variable_set('globalredirect_menu_check', GLOBALREDIRECT_MENU_CHECK_ENABLED);
-    variable_set('globalredirect_nonclean2clean', GLOBALREDIRECT_FEATURE_DISABLED);
+    variable_set('globalredirect_settings', array(
+      'deslash' => 0,
+      'menu_check' => 1,
+      'nonclean_to_clean' => 0,
+    ));
+
     $this->_globalredirect_batch_test();
   }
 }
