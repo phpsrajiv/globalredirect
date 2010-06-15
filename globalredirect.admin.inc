@@ -90,12 +90,12 @@ function globalredirect_settings_submit_save($form_id, &$form_state) {
   $settings = $form_state['values']['settings'];
 
   // Compare each setting to the default. If equal, remove. If not, cast to an int (FormAPI converts keys to string).
-  foreach ($settings as $key => &$value) {
+  foreach ($settings as $key => $value) {
     if ($value == $defaults[$key]) {
       unset($settings[$key]);
     }
     else {
-      $value = (int)$value;
+      $settings[$key] = (int)$value;
     }
   }
 

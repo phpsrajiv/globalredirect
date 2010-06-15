@@ -40,10 +40,10 @@ function globalredirect_update_6101() {
   );
 
   // If a setting matches the default value, unset it (we wont need to store it)
-  foreach ($settings as $key => &$value) {
+  foreach ($settings as $key => $value) {
     // We used to use -1 for disabled, convert this to 0 for the new diabled
     if ($value == -1) {
-      $value = 0;
+      $ettings[$key] = 0;
     }
     // Now compare the value to the defaults. Only store if an "override".
     if ($value == $defaults[$key]) {
