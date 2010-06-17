@@ -43,7 +43,7 @@ function globalredirect_update_6101() {
   foreach ($settings as $key => $value) {
     // We used to use -1 for disabled, convert this to 0 for the new diabled
     if ($value == -1) {
-      $ettings[$key] = 0;
+      $settings[$key] = 0;
     }
     // Now compare the value to the defaults. Only store if an "override".
     if ($value == $defaults[$key]) {
