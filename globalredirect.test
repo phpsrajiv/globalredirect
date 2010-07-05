@@ -13,7 +13,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
   function setUp() {
-    parent::setUp('path', 'globalredirect');
+    parent::setUp('path', 'globalredirect', 'taxonomy');
 
     // Create a user
     $user = $this->drupalCreateUser(array(
@@ -35,6 +35,25 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
     // Create an alias for the create story path - this is used in the "redirect with permissions testing" test.
     path_set_alias('node/add/story', 'add-node-story');
+
+    // Create a test vocab
+    $vocab = array(
+      'name' => 'test vocab',
+      'multiple' => 0,
+      'required' => 0,
+      'hierarchy' => 0,
+      'module' => 'taxonomy',
+      'nodes' => array('page', 'story'),
+    );
+    taxonomy_save_vocabulary($vocab);
+
+    // Create a test node
+    $term = array(
+      'vid' => $vocab['vid'],
+      'name' => 'Test Term',
+    );
+    taxonomy_save_term($term);
+    path_set_alias('taxonomy/term/'. $term['tid'], 'test-term');
   }
 
 
@@ -80,7 +99,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
         'expected-path' => 'user/'. $this->loggedInUser->uid,
       ),
 
-      // NonClean to Clean check 1... --- This should always redirect as we're requesting an aliased path in unaliased form (albeit also unclean)
+      // NonClean to Clean check 1 --- This should always redirect as we're requesting an aliased path in unaliased form (albeit also unclean)
       array(
         'request' => url('<front>', array('absolute' => TRUE)),
         'options' => array('query' => array('q' => 'node/1'), 'external' => TRUE),
@@ -88,12 +107,36 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
         'expected-path' => 'test-node',
       ),
 
-      // NonClean to Clean check 2... --- This may or may not redirect, depending on the state of $clean_check as we're requesting an unaliased path
+      // NonClean to Clean check 2 --- This may or may not redirect, depending on the state of nonclean_to_clean as we're requesting an unaliased path
       array(
         'request' => url('<front>', array('absolute' => TRUE)),
         'options' => array('query' => array('q' => 'node/add/page'), 'external' => TRUE),
         'return-code' => $settings['nonclean_to_clean'] ? 301 : 200,
         'expected-path' => $settings['nonclean_to_clean'] ? 'node/add/page' : '?q=node/add/page',
+      ),
+
+      // Case Sensitive URL Check --- This may or may not redirect, depending on the state of case_sensitive_urls as we're requesting an aliased path in the wrong case
+      array(
+        'request' => 'Test-Node',
+        'return-code' => $settings['case_sensitive_urls'] ? 301 : 200,
+        'expected-path' => $settings['case_sensitive_urls'] ? 'test-node' : 'Test-Node',
+      ),
+
+
+      // Trailing Zero Check --- This may or may not redirect, depending on the state of trailing_zero, as we're requesting an aliased path with a trailing zero source
+      // If 1, we trim ALL trailing /0... If 0 (disabled) or 2 (taxonomy term only), then a 200 response should be issued.
+      array(
+        'request' => 'node/1/0',
+        'return-code' => $settings['trailing_zero'] == 1 ? 301 : 200,
+        'expected-path' => $settings['trailing_zero'] == 1 ? 'test-node' : 'node/1/0',
+      ),
+
+      // Trailing Zero Check --- This may or may not redirect, depending on the state of trailing_zero, as we're requesting an aliased path with a trailing zero source
+      // If not disabled, then we should trim from taxonomy/term/1/0
+      array(
+        'request' => 'taxonomy/term/1/0',
+        'return-code' => $settings['trailing_zero'] > 0 ? 301 : 200,
+        'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/1/0',
       ),
     );
 
@@ -187,6 +230,7 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
       'deslash' => 1,
       'menu_check' => 0,
       'nonclean_to_clean' => 1,
+      'case_sensitive_urls' => 1,
     ));
     $this->_globalredirect_batch_test();
   }
@@ -206,6 +250,7 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
       'deslash' => 0,
       'menu_check' => 1,
       'nonclean_to_clean' => 0,
+      'case_sensitive_urls' => 0,
     ));
 
     $this->_globalredirect_batch_test();

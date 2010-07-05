@@ -71,6 +71,24 @@ function globalredirect_settings() {
     '#default_value' => $settings['case_sensitive_urls'],
   );
 
+
+  $form['settings']['language_redirect'] = array(
+    '#type' => 'radios',
+    '#title' => t('Language Path Checking'),
+    '#description' => t('If enabled, the module will check that the page being viewed matches the language in the URL or the system default. For example, viewing a French node while the site is in English will cause a redirect to the English node.'),
+    '#options' => array(
+      0 => t('Disabled'),
+      1 => t('Enabled'),
+    ),
+    '#default_value' => $settings['language_redirect'],
+  );
+
+
+
+
+
+
+
   $form['buttons']['submit'] = array('#type' => 'submit', '#submit' => array('globalredirect_settings_submit_save'),  '#value' => t('Save Configuration') );
   $form['buttons']['reset']  = array('#type' => 'submit', '#submit' => array('globalredirect_settings_submit_reset'), '#value' => t('Reset to defaults') );
 

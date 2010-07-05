@@ -116,6 +116,54 @@ function globalredirect_init() {
   }
 
 
+  // If Content Translation module is enabled then check the path is correct.
+  if (module_exists('translation') && $settings['language_redirect'] && (arg(0) == 'node') && is_numeric(arg(1)) && (arg(2) == '')) {
+    switch(variable_get('language_negotiation', LANGUAGE_NEGOTIATION_NONE)) {
+      case LANGUAGE_NEGOTIATION_PATH_DEFAULT:
+      case LANGUAGE_NEGOTIATION_PATH:
+        // Check if there's a translation for the current language of the requested node...
+        $node_translations = translation_path_get_translations('node/'. arg(1));
+        // If there is, go to the translation.
+        if (!empty($node_translations[$language->language]) && $node_translations[$language->language] != 'node/'. arg(1)) {
+          drupal_goto($node_translations[$language->language]);
+        }
+        // If there is no translation, change the language to fit the content!
+        else {
+          $node = node_load(arg(1));
+          if (!empty($node->language) && $node->language != $language->language) {
+            $all_languages = language_list();
+            // Change the global $language's prefix, to make drupal_goto()
+            // follow the proper prefix
+            $language = $all_languages[$node->language];
+            drupal_goto(drupal_get_path_alias('node/'. $node->nid));
+          }
+        }
+        break;
+
+      case LANGUAGE_NEGOTIATION_DOMAIN:
+        // Let's check is there other languages on site.
+        $all_languages = language_list();
+        if (count($all_languages) > 1) {
+          foreach ($all_languages as $l => $lang) {
+            // Only test for languages other than the current one.
+            if ($lang->language != $language->language) { 
+              $alias = drupal_get_path_alias($request, $lang->language);
+              // There is a matching language for this alias
+              if ($alias != $request) {
+                if (isset($lang->domain)) {
+                  drupal_goto($lang->domain.'/'.$alias, $query_string, NULL, 301);
+                }
+                break;
+              }
+            }
+          }
+        }
+        break;
+    }
+  }
+
+
+
   // Find an alias (if any) for the request
   $langcode = isset($options['language']->language) ? $options['language']->language : '';
   $alias = drupal_get_path_alias($request, $langcode);
@@ -130,6 +178,7 @@ function globalredirect_init() {
 
   // Alias case sensitivity check. If there is an alias from the previous
   // lookup, do a query to test for case.
+  // NOTE: This test depends on the coalition of the table being case-insensitive (ending _ci).
   if ($alias && $settings['case_sensitive_urls']) {
     $alias_sensitive = db_result(db_query("SELECT dst FROM {url_alias} WHERE dst = '%s' AND language = '%s'", $alias, $langcode));
     if ($alias_sensitive && $alias != $alias_sensitive) {
@@ -260,6 +309,7 @@ function _globalredirect_get_settings($default_only = FALSE) {
     'trailing_zero' => 0,
     'menu_check' => 0,
     'case_sensitive_urls' => 1,
+    'language_redirect' => 0,
   );
 
   if ($default_only) {
