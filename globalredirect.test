@@ -13,8 +13,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
   function setUp() {
-    $modules = array_merge(func_get_args(), array('path', 'globalredirect'));
-    call_user_func_array(array($this, 'parent::setUp'), $modules);
+    parent::setUp('path', 'globalredirect');
 
     // Create a user
     $user = $this->drupalCreateUser(array(
@@ -37,6 +36,8 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
     // Create an alias for the create story path - this is used in the "redirect with permissions testing" test.
     path_set_alias('node/add/story', 'add-node-story');
   }
+
+
 
   protected function _globalredirect_batch_test() {
     // Get the settings
