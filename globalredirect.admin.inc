@@ -84,9 +84,12 @@ function globalredirect_settings() {
   );
 
 
-
-
-
+  $form['settings']['canonical'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Add Canonical Link'),
+    '#description' => t('If enabled, will add a <a href="!canonical">canonical link</a> to each page.', array('!canonical' => 'http://googlewebmastercentral.blogspot.com/2009/02/specify-your-canonical.html')),
+    '#default_value' => $settings['canonical'],
+  );
 
 
   $form['buttons']['submit'] = array('#type' => 'submit', '#submit' => array('globalredirect_settings_submit_save'),  '#value' => t('Save Configuration') );
