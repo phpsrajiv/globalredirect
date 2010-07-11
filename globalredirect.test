@@ -13,7 +13,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
   function setUp() {
-    parent::setUp('path', 'globalredirect', 'taxonomy');
+    parent::setUp('path', 'globalredirect', 'taxonomy', 'forum');
 
     // Create a user
     $user = $this->drupalCreateUser(array(
@@ -36,7 +36,17 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
     // Create an alias for the create story path - this is used in the "redirect with permissions testing" test.
     path_set_alias('node/add/story', 'add-node-story');
 
-    // Create a test vocab
+
+    // The forum vocab should already be created - should be term 1?
+    $forum_term = array(
+      'vid' => variable_get('forum_nav_vocabulary', 0),
+      'name' => 'Test Forum Term',
+    );
+    taxonomy_save_term($forum_term);
+
+
+
+    // Create another test vocab (with a default module) - should be vocab 2?
     $vocab = array(
       'name' => 'test vocab',
       'multiple' => 0,
@@ -46,14 +56,16 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       'nodes' => array('page', 'story'),
     );
     taxonomy_save_vocabulary($vocab);
+    $vocab = taxonomy_vocabulary_load($vocab['vid'], TRUE);
 
-    // Create a test node
+    // Create a test term - Should be term 2?
     $term = array(
-      'vid' => $vocab['vid'],
+      'vid' => $vocab->vid,
       'name' => 'Test Term',
     );
     taxonomy_save_term($term);
-    path_set_alias('taxonomy/term/'. $term['tid'], 'test-term');
+    $term = taxonomy_get_term($term['tid']);
+    path_set_alias(taxonomy_term_path($term), 'test-term');
   }
 
 
@@ -61,6 +73,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
   protected function _globalredirect_batch_test() {
     // Get the settings
     $settings = _globalredirect_get_settings();
+    $this->assert('pass', '<pre>'. print_r($settings, TRUE) .'</pre>');
 
     // Array of request => "array of expected data" pairs.
     // The array must have a return-code key (with a numeric HTTP code as a value (eg 301 or 200).
@@ -123,6 +136,14 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       ),
 
 
+      // Term Path Handler Check --- This may or may not redirect, depending on the state of term_path_handler as we're requesting an aliased path with the wrong source
+      array(
+        'request' => 'taxonomy/term/1', // TODO: WE're assumeing term 1 is the forum tid created in setUp() - bad?
+        'return-code' => $settings['term_path_handler'] ? 301 : 200,
+        'expected-path' => $settings['term_path_handler'] ? 'forum/1' : 'taxonomy/term/1',
+      ),
+
+
       // Trailing Zero Check --- This may or may not redirect, depending on the state of trailing_zero, as we're requesting an aliased path with a trailing zero source
       // If 1, we trim ALL trailing /0... If 0 (disabled) or 2 (taxonomy term only), then a 200 response should be issued.
       array(
@@ -134,9 +155,9 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       // Trailing Zero Check --- This may or may not redirect, depending on the state of trailing_zero, as we're requesting an aliased path with a trailing zero source
       // If not disabled, then we should trim from taxonomy/term/1/0
       array(
-        'request' => 'taxonomy/term/1/0',
+        'request' => 'taxonomy/term/2/0',
         'return-code' => $settings['trailing_zero'] > 0 ? 301 : 200,
-        'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/1/0',
+        'expected-path' => $settings['trailing_zero'] > 0 ? 'test-term' : 'taxonomy/term/2/0',
       ),
     );
 
@@ -231,6 +252,7 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
       'menu_check' => 0,
       'nonclean_to_clean' => 1,
       'case_sensitive_urls' => 1,
+      'term_path_handler' => 0,
     ));
     $this->_globalredirect_batch_test();
   }
@@ -251,6 +273,7 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
       'menu_check' => 1,
       'nonclean_to_clean' => 0,
       'case_sensitive_urls' => 0,
+      'term_path_handler' => 1,
     ));
 
     $this->_globalredirect_batch_test();

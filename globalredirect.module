@@ -7,6 +7,7 @@
  * are not using the aliases which reduces the risk of duplicate content.
  */
 
+
 /**
  * Implements hook_help().
  */
@@ -16,6 +17,7 @@ function globalredirect_help($section) {
       return t('This module will do a 301 redirect for all nodes which have an alias but are not using that alias.');
   }
 }
+
 
 /**
  * Implements hook_init().
@@ -116,8 +118,22 @@ function globalredirect_init() {
   }
 
 
+  // If the feature is enabled, check and redirect taxonomy/term/* requests to their proper handler defined by hook_term_path().
+  if ($settings['term_path_handler'] && module_exists('taxonomy') && preg_match('/taxonomy\/term\/([0-9]+)$/', $request, $matches)) {
+    // So the feature is enabled, as is taxonomy module and the current request is a taxonomy term page.
+    // NOTE: This will only match taxonomy term pages WITHOUT a depth modifier
+    $term = taxonomy_get_term($matches[1]);
+
+    // Get the term path for this term (handler is defined in the vocab table under module). If it differs from the request, then redirect.
+    if (($term_path = taxonomy_term_path($term)) != $request) {
+      //drupal_goto($term_path, $query_string, NULL, 301);
+      $request = $term_path;
+    }
+  }
+
+
   // If Content Translation module is enabled then check the path is correct.
-  if (module_exists('translation') && $settings['language_redirect'] && (arg(0) == 'node') && is_numeric(arg(1)) && (arg(2) == '')) {
+  if ($settings['language_redirect'] && module_exists('translation') && (arg(0) == 'node') && is_numeric(arg(1)) && (arg(2) == '')) {
     switch(variable_get('language_negotiation', LANGUAGE_NEGOTIATION_NONE)) {
       case LANGUAGE_NEGOTIATION_PATH_DEFAULT:
       case LANGUAGE_NEGOTIATION_PATH:
@@ -218,6 +234,7 @@ function globalredirect_init() {
    }
 }
 
+
 /**
  * Implements hook_menu().
  */
@@ -233,6 +250,7 @@ function globalredirect_menu() {
 
   return $items;
 }
+
 
 /**
  * Drupal 6 backport of drupal_is_cli().
@@ -290,7 +308,7 @@ function _globalredirect_is_active($settings) {
 
 
   /**
-   * If drupal_get_path_alisa isn't preset, GlobalRedirect is not active
+   * If drupal_get_path_alias isn't preset, GlobalRedirect is not active
    */
   if (!function_exists('drupal_get_path_alias')) return FALSE;
 
@@ -320,6 +338,7 @@ function _globalredirect_get_settings($default_only = FALSE) {
     'case_sensitive_urls' => 1,
     'language_redirect' => 0,
     'canonical' => 0,
+    'term_path_handler' => 1,
   );
 
   if ($default_only) {

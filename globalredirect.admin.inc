@@ -16,24 +16,16 @@ function globalredirect_settings() {
     '#tree' => TRUE,
   );
   $form['settings']['deslash'] = array(
-    '#type' => 'radios',
+    '#type' => 'checkbox',
     '#title' => t('Deslash'),
     '#description' => t('If enabled, this option will remove the trailing slash from requests. This stops requests such as <code>example.com/node/1/</code> failing to match the corresponding alias and can cause duplicate content. On the other hand, if you require certain requests to have a trailing slash, this feature can cause problems so may need to be disabled.'),
-    '#options' => array(
-      0 => t('Off'),
-      1  => t('On'),
-    ),
     '#default_value' => $settings['deslash'],
   );
 
   $form['settings']['nonclean_to_clean'] = array(
-    '#type' => 'radios',
+    '#type' => 'checkbox',
     '#title' => t('Non-clean to Clean'),
     '#description' => t('If enabled, this option will redirect from non-clean to clean URL (if Clean URL\'s are enabled). This will stop, for example, node 1  existing on both <code>example.com/node/1</code> AND <code>example.com?q=node/1</code>.'),
-    '#options' => array(
-      0 => t('Off'),
-      1 => t('On'),
-    ),
     '#default_value' => $settings['nonclean_to_clean'],
   );
 
@@ -50,36 +42,24 @@ function globalredirect_settings() {
   );
 
   $form['settings']['menu_check'] = array(
-    '#type' => 'radios',
+    '#type' => 'checkbox',
     '#title' => t('Menu Access Checking'),
     '#description' => t('If enabled, the module will check the user has access to the page before redirecting. This helps to stop redirection on protected pages and avoids giving away <em>secret</em> URL\'s. <strong>By default this feature is disabled to avoid any unexpected behavior</strong>'),
-    '#options' => array(
-      0 => t('Disabled'),
-      1 => t('Enabled'),
-    ),
     '#default_value' => $settings['menu_check'],
   );
 
   $form['settings']['case_sensitive_urls'] = array(
-    '#type' => 'radios',
+    '#type' => 'checkbox',
     '#title' => t('Case Sensitive URL Checking'),
     '#description' => t('If enabled, the module will compare the current URL to the alias stored in the system. If there are any differences in case then the user will be redirected to the correct URL.'),
-    '#options' => array(
-      0 => t('Disabled'),
-      1 => t('Enabled'),
-    ),
     '#default_value' => $settings['case_sensitive_urls'],
   );
 
 
   $form['settings']['language_redirect'] = array(
-    '#type' => 'radios',
+    '#type' => 'checkbox',
     '#title' => t('Language Path Checking'),
     '#description' => t('If enabled, the module will check that the page being viewed matches the language in the URL or the system default. For example, viewing a French node while the site is in English will cause a redirect to the English node.'),
-    '#options' => array(
-      0 => t('Disabled'),
-      1 => t('Enabled'),
-    ),
     '#default_value' => $settings['language_redirect'],
   );
 
@@ -89,6 +69,14 @@ function globalredirect_settings() {
     '#title' => t('Add Canonical Link'),
     '#description' => t('If enabled, will add a <a href="!canonical">canonical link</a> to each page.', array('!canonical' => 'http://googlewebmastercentral.blogspot.com/2009/02/specify-your-canonical.html')),
     '#default_value' => $settings['canonical'],
+  );
+
+
+  $form['settings']['term_path_handler'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Taxonomy Term Path Handler'),
+    '#description' => t('If enabled, any request to a taxonomy/term/[tid] page will check that the correct path is being used for the term\'s vocabulary.'),
+    '#default_value' => $settings['term_path_handler'],
   );
 
 
