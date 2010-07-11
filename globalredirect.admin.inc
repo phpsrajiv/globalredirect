@@ -72,6 +72,14 @@ function globalredirect_settings() {
   );
 
 
+  $form['settings']['content_location_header'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Set Content Location Header'),
+    '#description' => t('If enabled, will add a <a href="!canonical">Content-Location</a> header.', array('!canonical' => 'http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.14')),
+    '#default_value' => $settings['content_location_header'],
+  );
+
+
   $form['settings']['term_path_handler'] = array(
     '#type' => 'checkbox',
     '#title' => t('Taxonomy Term Path Handler'),

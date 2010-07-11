@@ -229,9 +229,15 @@ function globalredirect_init() {
   if ($settings['canonical']) {
      drupal_add_link(array(
        'rel' => 'canonical',
-       'href' => url(drupal_is_front_page() ? '<front>' : $_REQUEST['q'], array('absolute' => TRUE)),
+       'href' => url(drupal_is_front_page() ? '<front>' : $_REQUEST['q'], array('absolute' => TRUE, 'query' => $query_string)),
      ));
    }
+
+
+  // Add the Content-Location header to the page
+  if ($settings['content_location_header']) {
+    drupal_set_header('Content-Location: '. url(drupal_is_front_page() ? '<front>' : $_REQUEST['q'], array('absolute' => TRUE, 'query' => $query_string)));
+  }
 }
 
 
@@ -338,6 +344,7 @@ function _globalredirect_get_settings($default_only = FALSE) {
     'case_sensitive_urls' => 1,
     'language_redirect' => 0,
     'canonical' => 0,
+    'content_location_header' => 0,
     'term_path_handler' => 1,
   );
 
