@@ -134,7 +134,7 @@ function globalredirect_init() {
 
   // If Content Translation module is enabled then check the path is correct.
   if ($settings['language_redirect'] && module_exists('translation') && (arg(0) == 'node') && is_numeric(arg(1)) && (arg(2) == '')) {
-    switch(variable_get('language_negotiation', LANGUAGE_NEGOTIATION_NONE)) {
+    switch (variable_get('language_negotiation', LANGUAGE_NEGOTIATION_NONE)) {
       case LANGUAGE_NEGOTIATION_PATH_DEFAULT:
       case LANGUAGE_NEGOTIATION_PATH:
         // Check if there's a translation for the current language of the requested node...
@@ -162,12 +162,12 @@ function globalredirect_init() {
         if (count($all_languages) > 1) {
           foreach ($all_languages as $l => $lang) {
             // Only test for languages other than the current one.
-            if ($lang->language != $language->language) { 
+            if ($lang->language != $language->language) {
               $alias = drupal_get_path_alias($request, $lang->language);
               // There is a matching language for this alias
               if ($alias != $request) {
                 if (isset($lang->domain)) {
-                  drupal_goto($lang->domain.'/'.$alias, $query_string, NULL, 301);
+                  drupal_goto($lang->domain .'/'. $alias, $query_string, NULL, 301);
                 }
                 break;
               }
@@ -227,11 +227,11 @@ function globalredirect_init() {
 
   // Add the canonical link to the head of the document if desired.
   if ($settings['canonical']) {
-     drupal_add_link(array(
-       'rel' => 'canonical',
-       'href' => url(drupal_is_front_page() ? '<front>' : $_REQUEST['q'], array('absolute' => TRUE, 'query' => $query_string)),
-     ));
-   }
+    drupal_add_link(array(
+      'rel' => 'canonical',
+      'href' => url(drupal_is_front_page() ? '<front>' : $_REQUEST['q'], array('absolute' => TRUE, 'query' => $query_string)),
+    ));
+  }
 
 
   // Add the Content-Location header to the page
