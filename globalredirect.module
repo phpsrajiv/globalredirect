@@ -126,7 +126,6 @@ function globalredirect_init() {
 
     // Get the term path for this term (handler is defined in the vocab table under module). If it differs from the request, then redirect.
     if (($term_path = taxonomy_term_path($term)) != $request) {
-      //drupal_goto($term_path, $query_string, NULL, 301);
       $request = $term_path;
     }
   }
@@ -141,17 +140,16 @@ function globalredirect_init() {
         $node_translations = translation_path_get_translations('node/'. arg(1));
         // If there is, go to the translation.
         if (!empty($node_translations[$language->language]) && $node_translations[$language->language] != 'node/'. arg(1)) {
-          drupal_goto($node_translations[$language->language]);
+          drupal_goto($node_translations[$language->language], $query_string, NULL, 301);
         }
         // If there is no translation, change the language to fit the content!
         else {
           $node = node_load(arg(1));
           if (!empty($node->language) && $node->language != $language->language) {
             $all_languages = language_list();
-            // Change the global $language's prefix, to make drupal_goto()
-            // follow the proper prefix
+            // Change the global $language's prefix, to make drupal_goto() follow the proper prefix
             $language = $all_languages[$node->language];
-            drupal_goto(drupal_get_path_alias('node/'. $node->nid));
+            drupal_goto('node/'. $node->nid, $query_string, NULL, 301);
           }
         }
         break;
