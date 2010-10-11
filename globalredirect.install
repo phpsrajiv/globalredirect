@@ -28,6 +28,7 @@ function globalredirect_update_6101() {
   $ret = array();
 
   // Get the default settings
+  drupal_load('module', 'globalredirect');
   $defaults = _globalredirect_get_settings(TRUE);
 
   // Define a settings array based on the variables already set (or their defaults)
