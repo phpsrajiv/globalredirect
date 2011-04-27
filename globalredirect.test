@@ -86,10 +86,11 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       ),
 
       // "node" is the default frontpage. Should redirect to base path. --- Test for frontpage redirect
+      // The result depends on settings
       array(
         'request' => 'node',
-        'return-code' => 301,
-        'expected-path' => '',
+        'return-code' => $settings['frontpage_redirect'] ? 301 : 200,
+        'expected-path' => $settings['frontpage_redirect'] ? '' : 'node',
       ),
 
       // "node/1" has been defined above as having an alias ("test-node"). Should 301 redirect to the alias. --- Test for source path request on aliased path
@@ -252,6 +253,7 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
       'nonclean_to_clean' => 1,
       'case_sensitive_urls' => 1,
       'term_path_handler' => 0,
+      'frontpage_redirect' => 1,
     ));
     $this->_globalredirect_batch_test();
   }
@@ -273,6 +275,7 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
       'nonclean_to_clean' => 0,
       'case_sensitive_urls' => 0,
       'term_path_handler' => 1,
+      'frontpage_redirect' => 0,
     ));
 
     $this->_globalredirect_batch_test();
