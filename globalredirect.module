@@ -123,7 +123,7 @@ function globalredirect_init() {
     $term = taxonomy_get_term($matches[1]);
 
     // Get the term path for this term (handler is defined in the vocab table under module). If it differs from the request, then redirect.
-    if (($term_path = taxonomy_term_path($term)) != $request) {
+    if (!empty($term) && ($term_path = taxonomy_term_path($term)) != $request) {
       $request = $term_path;
     }
   }

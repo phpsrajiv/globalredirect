@@ -11,8 +11,15 @@ define('SUCCESS_MESSAGE', 'SUCCESS<br />Expected Path: !expected_path<br />Expec
 class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
-  function setUp() {
-    parent::setUp('path', 'globalredirect', 'taxonomy', 'forum');
+  function setUp(array $modules = array()) {
+    $modules[] = 'path';
+    $modules[] = 'globalredirect';
+    $modules[] = 'taxonomy';
+    $modules[] = 'forum';
+    parent::setUp($modules);
+
+    // Clean URLs should be enabled for testing.
+    variable_set('clean_url', 1);
 
     // Create a user
     $user = $this->drupalCreateUser(array(
