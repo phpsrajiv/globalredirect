@@ -112,7 +112,7 @@ function globalredirect_init() {
     case 1 :
       // If last 2 characters of URL are /0 then trim them off
       if (drupal_substr($request, -2) == '/0') {
-        $request = rtrim($request, '/0');
+        $request = drupal_substr($request, 0, -2);
       }
   }
 
