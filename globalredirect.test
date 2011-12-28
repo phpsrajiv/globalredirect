@@ -23,6 +23,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
       'access content',
       'create page content',
       'create url aliases',
+      'access administration pages', // For the 'ignore admin path' test
     ));
     $this->drupalLogin($user);
 
@@ -38,6 +39,9 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
     // Create an alias for the create story path - this is used in the "redirect with permissions testing" test.
     path_set_alias('node/add/story', 'add-node-story');
+
+    // Create an alias for the admin URL - this is used in the "ignore admin path" test.
+    path_set_alias('admin', 'administration');
 
 
     // The forum vocab should already be created - should be term 1?
@@ -201,6 +205,12 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
         'expected-path' => $settings['trailing_zero'] > 0 ? 'taxonomy/term/10' : 'taxonomy/term/10/0',
       ),
 
+      // Regression test for http://drupal.org/node/867654 - term 10 does not exist
+      array(
+        'request' => 'admin',
+        'return-code' => $settings['ignore_admin_path'] > 0 ? 200 : 301, // Ignoring the admin path means no src=>alias redirecting.
+        'expected-path' => $settings['ignore_admin_path'] > 0 ? 'admin' : 'administration',
+      ),
     );
 
 
@@ -297,6 +307,7 @@ class GlobalRedirectTestCaseDefault extends GlobalRedirectTestCase {
       'term_path_handler' => 0,
       'frontpage_redirect' => 1,
       'trailing_zero' => 0,
+      'ignore_admin_path' => 1,
     ));
     $this->_globalredirect_batch_test();
   }
@@ -320,6 +331,7 @@ class GlobalRedirectTestCaseConfigAlpha extends GlobalRedirectTestCase {
       'term_path_handler' => 1,
       'frontpage_redirect' => 0,
       'trailing_zero' => 1,
+      'ignore_admin_path' => 0,
     ));
 
     $this->_globalredirect_batch_test();
