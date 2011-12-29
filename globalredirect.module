@@ -248,7 +248,7 @@ function globalredirect_goto($path = '', $query = NULL, $fragment = NULL, $http_
  */
 function globalredirect_url_is_external($path) {
   $colonpos = strpos($path, ':');
-  return $colonpos !== FALSE && !preg_match('![/?#]!', substr($path, 0, $colonpos));
+  return $colonpos !== FALSE && !preg_match('![/?#]!', drupal_substr($path, 0, $colonpos));
 }
 
 /**
