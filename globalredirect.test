@@ -216,7 +216,7 @@ class GlobalRedirectTestCase extends DrupalWebTestCase {
 
 
     // Foreach of the above, lets check they redirect correctly
-    foreach ($test_paths as $path) {
+    foreach ($test_paths as $id => $path) {
       // Overlay some defaults onto the path. This ensures 'options' is set as an array.
       $path += array(
         'options' => array(),
